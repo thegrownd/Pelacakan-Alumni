@@ -1,0 +1,437 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: SPAT Alumni Tracking System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: alumni
+    description: Alumni management
+  - name: candidates
+    description: Tracking candidates
+  - name: signals
+    description: Extracted signals
+  - name: scheduler
+    description: Scheduler operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /alumni:
+    get:
+      operationId: getAlumni
+      tags: [alumni]
+      summary: Get all alumni
+      responses:
+        "200":
+          description: List of alumni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alumni"
+    post:
+      operationId: createAlumni
+      tags: [alumni]
+      summary: Create alumni
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAlumniRequest"
+      responses:
+        "201":
+          description: Created alumni
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alumni"
+
+  /alumni/{id}:
+    get:
+      operationId: getAlumniById
+      tags: [alumni]
+      summary: Get alumni by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Alumni detail with candidates and signals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlumniDetail"
+    put:
+      operationId: updateAlumni
+      tags: [alumni]
+      summary: Update alumni
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAlumniRequest"
+      responses:
+        "200":
+          description: Updated alumni
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alumni"
+    delete:
+      operationId: deleteAlumni
+      tags: [alumni]
+      summary: Delete alumni
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /candidates:
+    get:
+      operationId: getCandidates
+      tags: [candidates]
+      summary: Get all candidates
+      parameters:
+        - name: alumniId
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of candidates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Candidate"
+
+  /candidates/{id}/verify:
+    post:
+      operationId: verifyCandidate
+      tags: [candidates]
+      summary: Verify candidate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Verified candidate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+
+  /candidates/{id}/reject:
+    post:
+      operationId: rejectCandidate
+      tags: [candidates]
+      summary: Reject candidate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Rejected candidate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Candidate"
+
+  /scheduler/run:
+    post:
+      operationId: runScheduler
+      tags: [scheduler]
+      summary: Run global tracking scheduler
+      responses:
+        "200":
+          description: Scheduler results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchedulerResult"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [alumni]
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Alumni:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        major:
+          type: string
+        graduationYear:
+          type: integer
+        nameVariations:
+          type: array
+          items:
+            type: string
+        affiliationKeywords:
+          type: array
+          items:
+            type: string
+        trackingStatus:
+          type: string
+          enum: [Teridentifikasi, Perlu Verifikasi Manual, Belum Ditemukan]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - major
+        - graduationYear
+        - nameVariations
+        - affiliationKeywords
+        - trackingStatus
+        - createdAt
+        - updatedAt
+
+    AlumniDetail:
+      allOf:
+        - $ref: "#/components/schemas/Alumni"
+        - type: object
+          properties:
+            candidates:
+              type: array
+              items:
+                $ref: "#/components/schemas/CandidateWithSignals"
+
+    CreateAlumniRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        major:
+          type: string
+        graduationYear:
+          type: integer
+        nameVariations:
+          type: array
+          items:
+            type: string
+        affiliationKeywords:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - major
+        - graduationYear
+
+    UpdateAlumniRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        major:
+          type: string
+        graduationYear:
+          type: integer
+        nameVariations:
+          type: array
+          items:
+            type: string
+        affiliationKeywords:
+          type: array
+          items:
+            type: string
+
+    Candidate:
+      type: object
+      properties:
+        id:
+          type: integer
+        alumniId:
+          type: integer
+        source:
+          type: string
+          enum: [LinkedIn, Google Scholar, ResearchGate, Google]
+        sourceUrl:
+          type: string
+        snippet:
+          type: string
+        confidenceScore:
+          type: number
+        nameMatchScore:
+          type: number
+        affiliationScore:
+          type: number
+        majorScore:
+          type: number
+        timelineScore:
+          type: number
+        status:
+          type: string
+          enum: [pending, verified, rejected]
+        createdAt:
+          type: string
+      required:
+        - id
+        - alumniId
+        - source
+        - snippet
+        - confidenceScore
+        - nameMatchScore
+        - affiliationScore
+        - majorScore
+        - timelineScore
+        - status
+        - createdAt
+
+    CandidateWithSignals:
+      allOf:
+        - $ref: "#/components/schemas/Candidate"
+        - type: object
+          properties:
+            signals:
+              type: array
+              items:
+                $ref: "#/components/schemas/ExtractedSignal"
+
+    ExtractedSignal:
+      type: object
+      properties:
+        id:
+          type: integer
+        candidateId:
+          type: integer
+        signalType:
+          type: string
+          enum: [job_title, company, location, education, publication]
+        value:
+          type: string
+        source:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - candidateId
+        - signalType
+        - value
+        - source
+        - createdAt
+
+    SchedulerResult:
+      type: object
+      properties:
+        processed:
+          type: integer
+        newCandidatesFound:
+          type: integer
+        identified:
+          type: integer
+        needsVerification:
+          type: integer
+        notFound:
+          type: integer
+        duration:
+          type: number
+      required:
+        - processed
+        - newCandidatesFound
+        - identified
+        - needsVerification
+        - notFound
+        - duration
+
+    DashboardStats:
+      type: object
+      properties:
+        totalAlumni:
+          type: integer
+        tracked:
+          type: integer
+        pendingVerification:
+          type: integer
+        successRate:
+          type: number
+      required:
+        - totalAlumni
+        - tracked
+        - pendingVerification
+        - successRate
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+      required:
+        - success
+        - message
