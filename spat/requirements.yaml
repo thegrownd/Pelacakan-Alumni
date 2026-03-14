@@ -1,0 +1,18 @@
+packages:
+  "recharts": "For dashboard charts and statistics visualization"
+  "framer-motion": "For page transitions and smooth UI animations"
+  "react-hook-form": "For robust form state management"
+  "@hookform/resolvers": "For Zod schema validation integration"
+  "zod": "For frontend form validation"
+  "date-fns": "For human-readable date formatting"
+  "lucide-react": "For UI icons"
+
+images:
+  - path: "artifacts/spat/public/images/academic-bg.png"
+    description: "Subtle abstract geometric background in pure white and deep professional academic blue, soft gradients, clean, minimalist, corporate tone"
+    aspect_ratio: "16:9"
+
+notes:
+  - Using generated hooks from @workspace/api-client-react
+  - Expecting standard REST JSON responses
+  - Wouter used for routing
